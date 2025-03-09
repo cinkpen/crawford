@@ -1,0 +1,4 @@
+paho.mqtt
+smbus
+pa1010d
+python-dotenv
