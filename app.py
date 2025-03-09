@@ -9,8 +9,10 @@ from pa1010d import PA1010D
 
 load_dotenv()
 # MQTT setup
-MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_BROKER = os.getenv("MQTT_BROKER", "192.168.0.180")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+
+print("Broker details: ", MQTT_BROKER, MQTT_PORT)
 
 
 mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # Updated to use the latest protocol version
