@@ -32,7 +32,7 @@ def publish_to_mqtt(data):
     mqtt_client.publish("gps/data", json.dumps(data))
 
 
-gps = PA1010D()
+gps = PA1010D(debug=True)
  
 
 while True:
@@ -54,4 +54,4 @@ while True:
         print(j)
         publish_to_mqtt(j)
 
-    time.sleep(1.0)
+    time.sleep(5.0)
