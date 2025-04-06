@@ -3,37 +3,46 @@ import time
 import json
 from dotenv import load_dotenv
 import os
+import logging
 
-import paho.mqtt.client as mqtt
+import RPi.GPIO as GPIO
 from pa1010d import PA1010D
 
 load_dotenv()
-# MQTT setup
-MQTT_BROKER = os.getenv("MQTT_BROKER", "192.168.0.180")
-MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
-
-print("Broker details: ", MQTT_BROKER, MQTT_PORT)
-
-
-mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # Updated to use the latest protocol version
-
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT , 60)
-
-# The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, userdata, flags, reason_code, properties):
-    print(f"Connected with result code {reason_code}")
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    client.subscribe("$SYS/#")
-
-mqtt_client.on_connect = on_connect
-
-def publish_to_mqtt(data):
-    mqtt_client.publish("gps/data", json.dumps(data))
 
 
 gps = PA1010D(debug=True)
+fileName = '/home/admin/crawford/gps-receiver/litter.log'
+
  
+# Setup logging
+logging.basicConfig(filename=fileName, level=logging.INFO, format='%(asctime)s - %(message)s')
+
+gpio_in = 26
+# Setup GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(gpio_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+logging.info("Startup")
+
+
+
+
+def log_event(channel):
+    print(f'Channel {channel} event detected')
+    input_state = GPIO.input(channel)
+    print(f'Input state: {input_state}')
+    if input_state:
+        s = f'GPIO {gpio_in} Triggered'
+        print(s)
+        logging.info(s)
+    else:
+        s = f'GPIO {gpio_in} Untriggered'
+        logging.info(s)
+
+# Add event detection
+GPIO.add_event_detect(gpio_in, GPIO.BOTH, callback=log_event, bouncetime=200)
+
 
 while True:
     result = gps.update()
@@ -52,6 +61,6 @@ while True:
     }
     if result:
         print(j)
-        publish_to_mqtt(j)
+        logging.info(j)
 
     time.sleep(5.0)
